@@ -11,7 +11,6 @@ requests = "^2.27.1"
 uvicorn = "^0.17.6"
 passlib = "^1.7.4"
 PyJWT = "^2.3.0"
-fastapi-redis-cache = "^0.2.5"
 redis = "^4.2.0"
 pytest = "^7.1.1"
 

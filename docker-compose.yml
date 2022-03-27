@@ -1,0 +1,40 @@
+version: "3.9"
+services:
+  app:
+    build: .
+    image: fastapi_api
+    container_name: api
+    command: poetry run uvicorn app.main:app --host 0.0.0.0
+#    command: tail -f /dev/null
+    volumes:
+      - ./app:/code/app
+    links:
+      - "redis:redis"
+    networks:
+      - nginx_network
+
+  dnmonster:
+    image: "amouat/dnmonster:latest"
+    networks:
+      - nginx_network
+
+  redis:
+    image: "redis:alpine"
+    networks:
+      - nginx_network
+
+  worker:
+    container_name: web
+    image: nginx:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - "app"
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - nginx_network
+
+networks:
+  nginx_network:
+    driver: bridge

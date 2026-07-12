@@ -1,9 +1,9 @@
-from datetime import datetime, timedelta  # used to handle expiry time for tokens
+from datetime import datetime, timedelta
 from typing import Optional
 
-import jwt  # used for encoding and decoding jwt tokens
-from fastapi import HTTPException  # used to handle error handling
-from passlib.context import CryptContext  # used for hashing the password
+import jwt
+from fastapi import HTTPException
+from passlib.context import CryptContext
 from pydantic import BaseModel
 
 
@@ -18,17 +18,17 @@ class AuthModel(BaseModel):
 
 class AuthModelBD(BaseModel):
     username: str
-    hashed_password: str
+    hashed_password: int
     email: Optional[str] = None
     password: Optional[str] = None
     disabled: Optional[bool] = None
 
 
-class Auth():
+class Auth:
 
-    def __init__(self, token, hasher=CryptContext(schemes=['bcrypt'])):
+    def __init__(self, token, hasher=None):
         self.secret = token
-        self.hasher = hasher
+        self.hasher = hasher or CryptContext(schemes=['pbkdf2_sha256'])
 
     def encode_password(self, password):
         return self.hasher.hash(password)
@@ -52,7 +52,7 @@ class Auth():
     def decode_token(self, token):
         try:
             payload = jwt.decode(token, self.secret, algorithms=['HS256'])
-            if (payload['scope'] == 'access_token'):
+            if payload.get('scope') == 'access_token':
                 return payload['sub']
             raise HTTPException(status_code=401, detail='Scope for the token is invalid')
         except jwt.ExpiredSignatureError:
@@ -76,7 +76,7 @@ class Auth():
     def refresh_token(self, refresh_token):
         try:
             payload = jwt.decode(refresh_token, self.secret, algorithms=['HS256'])
-            if (payload['scope'] == 'refresh_token'):
+            if payload.get('scope') == 'refresh_token':
                 username = payload['sub']
                 new_token = self.encode_token(username)
                 return new_token

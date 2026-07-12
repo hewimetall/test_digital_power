@@ -141,7 +141,7 @@ def test_get_avatar_requires_valid_access_token(client):
     missing = client.get("/get_avatar/test/")
     invalid = client.get("/get_avatar/test/", headers=auth_header("not-a-token"))
 
-    assert missing.status_code == 403
+    assert missing.status_code == 401
     assert invalid.status_code == 401
     assert invalid.json()["detail"] == "Invalid token"
 
